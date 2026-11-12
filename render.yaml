@@ -1,0 +1,18 @@
+# Render "Blueprint" — 저장소를 연결하면 이 파일대로 변환 서버가 만들어집니다.
+services:
+  - type: web
+    name: wikidocs-book-to-pdf
+    runtime: docker
+    plan: free
+    region: singapore # 한국과 가장 가까운 지역
+    dockerfilePath: ./server/Dockerfile
+    dockerContext: ./server
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: API_KEY # 앱에 입력할 비밀번호. 자동으로 만들어 줍니다.
+        generateValue: true
+      - key: GOOGLE_CLIENT_ID # 구글 드라이브 저장을 쓸 때만 필요 (docs/SETUP.md 3부)
+        sync: false
+      - key: GOOGLE_CLIENT_SECRET
+        sync: false

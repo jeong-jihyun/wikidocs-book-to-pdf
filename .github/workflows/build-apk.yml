@@ -1,0 +1,67 @@
+name: Build Android APK
+
+# mobile/ 폴더가 바뀌어 main 에 올라가면 자동으로 APK 를 만듭니다.
+# 수동으로 돌리려면: GitHub 저장소 → Actions → "Build Android APK" → Run workflow
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile/**"
+      - ".github/workflows/build-apk.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: write # 'apk-latest' 릴리스에 APK 를 붙이기 위해 필요
+
+concurrency:
+  group: build-apk
+  cancel-in-progress: true
+
+jobs:
+  apk:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: mobile/package-lock.json
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: 패키지 설치
+        working-directory: mobile
+        run: npm ci
+
+      - name: 안드로이드 프로젝트 만들기 (expo prebuild)
+        working-directory: mobile
+        run: npx expo prebuild --platform android --no-install
+
+      - name: APK 빌드 (release, 테스트용 디버그 키로 서명 → 바로 설치 가능)
+        working-directory: mobile/android
+        run: ./gradlew assembleRelease --no-daemon --stacktrace
+
+      - name: 파일 이름 정리
+        run: cp mobile/android/app/build/outputs/apk/release/app-release.apk wikidocs-pdf.apk
+
+      - name: 빌드 결과 보관 (Actions 화면에서 내려받기)
+        uses: actions/upload-artifact@v4
+        with:
+          name: wikidocs-pdf-apk
+          path: wikidocs-pdf.apk
+          retention-days: 30
+
+      - name: 최신 APK 를 릴리스에 올리기 (폰 브라우저로 바로 내려받기)
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: apk-latest
+          name: "최신 테스트 APK"
+          body: "main 브랜치의 최신 코드로 자동 빌드된 테스트용 APK 입니다. 빌드 시각 ${{ github.event.head_commit.timestamp }}"
+          prerelease: true
+          files: wikidocs-pdf.apk

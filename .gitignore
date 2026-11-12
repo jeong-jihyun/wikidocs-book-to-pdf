@@ -1,0 +1,23 @@
+# 파이썬
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# 모바일(Expo / React Native) — android/ 는 빌드할 때마다 새로 만들어집니다
+mobile/node_modules/
+mobile/android/
+mobile/ios/
+mobile/.expo/
+mobile/dist/
+*.apk
+*.aab
+*.keystore
+
+# 결과물·비밀값
+*.pdf
+.env
+.env.*
+/tmp/
+.DS_Store
