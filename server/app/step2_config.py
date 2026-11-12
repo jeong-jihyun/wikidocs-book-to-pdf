@@ -35,8 +35,10 @@ class Settings:
 
     @property
     def public_base_url(self) -> str:
-        # Render 는 RENDER_EXTERNAL_URL 을 자동으로 넣어 줍니다.
+        # Render 는 RENDER_EXTERNAL_URL, Hugging Face Spaces 는 SPACE_HOST(도메인만)를 자동으로 넣어 줍니다.
         url = os.environ.get("PUBLIC_BASE_URL") or os.environ.get("RENDER_EXTERNAL_URL", "")
+        if not url and os.environ.get("SPACE_HOST"):
+            url = "https://" + os.environ["SPACE_HOST"]
         return url.rstrip("/")
 
     @property
